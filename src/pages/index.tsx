@@ -19,10 +19,11 @@ export default function Home() {
         )
         .then((response) => {
           console.log(response);
+          setResults(response.data.response.docs);
         });
     }
   }, [searchInput]);
-
+  console.log(results);
   return (
     <>
       <Head>
@@ -38,8 +39,6 @@ export default function Home() {
         onChange={handleChange}
         value={searchInput}
       />
-
-      {results}
     </>
   );
 }
