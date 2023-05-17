@@ -1,8 +1,8 @@
-import React, { useState, Fragment } from 'react';
-import {
-  EuiHealth,
-  EuiSearchBar,
-} from '@elastic/eui';
+import { EuiSelect, EuiSearchBar, useGeneratedHtmlId, EuiHealth, EuiCallOut, EuiSpacer, EuiBasicTable } from "@elastic/eui";
+import axios from "axios";
+import Head from "next/head";
+import React, { Fragment, useEffect, useState } from "react";
+import ResultsBox from "@/components/ResultsBox";
 
 const tags = [
   { name: 'marketing', color: 'danger' },
@@ -28,6 +28,8 @@ const loadTags = () => {
 const initialQuery = EuiSearchBar.Query.MATCH_ALL;
 
 export default function Home() {
+  const [searchInput, setSearchInput] = useState("");
+  const [results, setResults] = useState([]);
   const [query, setQuery] = useState(initialQuery);
   const [error, setError] = useState(null);
   const [incremental, setIncremental] = useState(false);
@@ -41,6 +43,19 @@ export default function Home() {
       setQuery(query);
     }
   };
+
+  useEffect(() => {
+    if (query.text.length > 0) {
+      axios
+        .get(
+          `http://localhost:8983/solr/abstracts/select?q=title:${query.text}`
+        )
+        .then((response) => {
+          setResults(response.data.response.docs);
+        });
+    }
+  }, [query]);
+  console.log(results);
 
   const toggleIncremental = () => {
     setIncremental((prev) => !prev);
@@ -64,6 +79,9 @@ export default function Home() {
     const schema = {
       strict: true,
       fields: {
+        title: {
+          type: 'string',
+        },
         tag: {
           type: 'string',
           validate: (value) => {
@@ -83,32 +101,77 @@ export default function Home() {
       <EuiSearchBar
         defaultQuery={initialQuery}
         box={{
-          placeholder: 'type:visualization -is:active joe',
+          placeholder: 'Search something...',
           incremental,
           schema,
         }}
-        filters = {filters}
+        //filters = {filters}
+        query={query}
         onChange={onChange}
-        hint={
-          showHint
-            ? {
-                content: (
-                  <span>
-                    Type search terms, e.g. <strong>visualization</strong> or{' '}
-                    <strong>-dashboard</strong>
-                  </span>
-                ),
-                popoverProps: { panelStyle: { backgroundColor: '#f7f8fc' } },
-              }
-            : undefined
-        }
       />
     );
   };
 
+  const renderError = () => {
+    if (!error) {
+      return;
+    }
+    return (
+      <Fragment>
+        <EuiCallOut
+          iconType="faceSad"
+          color="danger"
+          title={`Invalid search: ${error.message}`}
+        />
+        <EuiSpacer size="l" />
+      </Fragment>
+    );
+  };
+
+  const renderTable = () => {
+    const columns = [
+      {
+        name: 'Title',
+        field: 'title',
+      },
+      {
+        name: 'Tags',
+        field: 'tag',
+      },
+    ];
+
+    const queriedItems = EuiSearchBar.Query.execute(query, items, {
+      defaultFields: ['owner', 'tag', 'type'],
+    });
+
+    return <EuiBasicTable items={queriedItems} columns={columns} />;
+  };
+
+  let esQueryDsl;
+  let esQueryString;
+
+  try {
+    esQueryDsl = EuiSearchBar.Query.toESQuery(query);
+  } catch (e) {
+    esQueryDsl = e.toString();
+  }
+  try {
+    esQueryString = EuiSearchBar.Query.toESQueryString(query);
+  } catch (e) {
+    esQueryString = e.toString();
+  }
+
   return (
     <Fragment>
       {renderSearch()}
+      {results?.map((result, index) => (
+        <ResultsBox
+        key={index}
+        title= {result.title}
+        abstract={result.abstract}
+        authors={result.authors}
+        ></ResultsBox>
+      ))}
     </Fragment>
   );
 };
