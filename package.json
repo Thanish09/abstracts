@@ -9,12 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@elastic/eui": "^78.0.0",
+    "@elastic/datemath": "^5.0.3",
+    "@elastic/eui": "^80.0.0",
+    "@emotion/css": "^11.11.0",
+    "@emotion/react": "^11.11.0",
     "@types/node": "18.16.3",
     "@types/react": "18.2.0",
     "@types/react-dom": "18.2.1",
     "axios": "^1.4.0",
+    "moment": "^2.29.4",
     "next": "13.3.4",
+    "prop-types": "^15.8.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "5.0.4"
