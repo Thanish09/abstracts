@@ -80,7 +80,7 @@ console.log(value);
     if (query.text.length > 0) {
       axios
         .get(
-          `http://localhost:8983/solr/abstracts/select?q=title:${query.text} categories:${value}&q.op=AND`
+          `http://localhost:8983/solr/abstracts/select?q=title:${query.text} categories:${value}&q.op=AND&fl=title,abstract,authors,categories,score`
         )
         .then((response) => {
           setResults(response.data.response.docs);
