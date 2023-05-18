@@ -7,6 +7,7 @@ import {
   EuiSpacer,
   EuiFlexItem,
   EuiFlexGroup,
+  EuiPanel,
 } from "@elastic/eui";
 
 export type Props = {
@@ -17,22 +18,20 @@ export type Props = {
 
 const ListItem: React.FC<Props> = ({ title, abstract, authors }) => {
   return (
-    <EuiFlexGroup justifyContent="spaceAround">
-      <EuiFlexItem style={{ maxWidth: 700 }}>
-        <EuiCard textAlign="center" title="">
-          <EuiDescriptionList>
-            <EuiDescriptionListTitle>{title}</EuiDescriptionListTitle>
-            <EuiDescriptionListDescription>
-              {abstract[0].substring(0, 200) + "..."}
-            </EuiDescriptionListDescription>
-            <EuiSpacer />
-            <EuiDescriptionListDescription>
-              {authors}
-            </EuiDescriptionListDescription>
-          </EuiDescriptionList>
-        </EuiCard>
-      </EuiFlexItem>
-    </EuiFlexGroup>
+    <EuiFlexItem style={{ maxWidth: 700 }}>
+      <EuiCard textAlign="center" title="">
+        <EuiDescriptionList>
+          <EuiDescriptionListTitle>{title}</EuiDescriptionListTitle>
+          <EuiDescriptionListDescription>
+            {abstract[0].substring(0, 200) + "..."}
+          </EuiDescriptionListDescription>
+          <EuiSpacer />
+          <EuiDescriptionListDescription>
+            {authors}
+          </EuiDescriptionListDescription>
+        </EuiDescriptionList>
+      </EuiCard>
+    </EuiFlexItem>
   );
 };
 
