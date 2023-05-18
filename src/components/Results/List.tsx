@@ -17,6 +17,7 @@ const List: React.FC<Props> = ({ items }) => {
             title={result.title}
             abstract={result.abstract}
             authors={result.authors}
+            score={result.score}
           />
         </>
       ))}

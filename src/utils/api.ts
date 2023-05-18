@@ -16,7 +16,7 @@ export const search = async ({ input, category }: SearchParams) => {
       response: { docs },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?q=title:${input} categories:${category}&q.op=AND`,
+    `http://localhost:8983/solr/abstracts/select?q=title:${input} categories:${category}&q.op=AND&fl=title,abstract,authors,categories,comments,score`,
     {
       method: "GET",
     }
