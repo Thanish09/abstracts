@@ -26,7 +26,7 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
           betaBadgeProps={{
             css: {transform: "translateX(250%) translateY(2%)"},
             color: "accent",
-            label: `Score: ${score.toFixed(3)}`,
+            label: `Match ${score.toFixed(3)}`,
           }}
           onClick={() => {}}
         >
