@@ -1,29 +1,52 @@
-import { EuiSelect, EuiSearchBar, useGeneratedHtmlId, EuiHealth, EuiCallOut, EuiSpacer, EuiBasicTable } from "@elastic/eui";
+import { EuiSelect, EuiSearchBar, useGeneratedHtmlId, EuiSpacer, EuiFlexGroup, EuiFlexItem, EuiText, EuiTextAlign, useEuiBackgroundColorCSS } from "@elastic/eui";
 import axios from "axios";
 import Head from "next/head";
 import React, { Fragment, useEffect, useState } from "react";
 import ResultsBox from "@/components/ResultsBox";
 
-const tags = [
-  { name: 'marketing', color: 'danger' },
-  { name: 'finance', color: 'success' },
-  { name: 'eng', color: 'success' },
-  { name: 'sales', color: 'warning' },
-  { name: 'ga', color: 'success' },
+const options = [
+  { value: '""', text: 'category' },
+  { value: 'cs.AI', text: 'cs.AI' },
+  { value: 'cs.AR', text: 'cs.AR' },
+  { value: 'cs.CC', text: 'cs.CC' },
+  { value: 'cs.CE', text: 'cs.CE' },
+  { value: 'cs.CG', text: 'cs.CG' },
+  { value: 'cs.CL', text: 'cs.CL' },
+  { value: 'cs.CR', text: 'cs.CR' },
+  { value: 'cs.CV', text: 'cs.CV' },
+  { value: 'cs.CY', text: 'cs.CY' },
+  { value: 'cs.DB', text: 'cs.DB' },
+  { value: 'cs.DC', text: 'cs.DC' },
+  { value: 'cs.DL', text: 'cs.DL' },
+  { value: 'cs.DM', text: 'cs.DM' },
+  { value: 'cs.DS', text: 'cs.DS' },
+  { value: 'cs.ET', text: 'cs.ET' },
+  { value: 'cs.FL', text: 'cs.FL' },
+  { value: 'cs.GL', text: 'cs.GL' },
+  { value: 'cs.GR', text: 'cs.GR' },
+  { value: 'cs.GT', text: 'cs.GT' },
+  { value: 'cs.HC', text: 'cs.HC' },
+  { value: 'cs.IR', text: 'cs.IR' },
+  { value: 'cs.IT', text: 'cs.IT' },
+  { value: 'cs.LG', text: 'cs.LG' },
+  { value: 'cs.LO', text: 'cs.LO' },
+  { value: 'cs.MA', text: 'cs.MA' },
+  { value: 'cs.MM', text: 'cs.MM' },
+  { value: 'cs.MS', text: 'cs.MS' },
+  { value: 'cs.NA', text: 'cs.NA' },
+  { value: 'cs.NE', text: 'cs.NE' },
+  { value: 'cs.NI', text: 'cs.NI' },
+  { value: 'cs.OH', text: 'cs.OH' },
+  { value: 'cs.OS', text: 'cs.OS' },
+  { value: 'cs.PF', text: 'cs.PF' },
+  { value: 'cs.PL', text: 'cs.PL' },
+  { value: 'cs.RO', text: 'cs.RO' },
+  { value: 'cs.SC', text: 'cs.SC' },
+  { value: 'cs.SD', text: 'cs.SD' },
+  { value: 'cs.SE', text: 'cs.SE' },
+  { value: 'cs.SI', text: 'cs.SI' },
+  { value: 'cs.SY', text: 'cs.SY' },
 ];
-
-const loadTags = () => {
-  return new Promise<any>((resolve) => {
-    setTimeout(() => {
-      resolve(
-        tags.map((tag) => ({
-          value: tag.name,
-          view: <EuiHealth color={tag.color}>{tag.name}</EuiHealth>,
-        }))
-      );
-    }, 2000);
-  });
-};
 
 const initialQuery = EuiSearchBar.Query.MATCH_ALL;
 
@@ -34,8 +57,17 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [incremental, setIncremental] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [value, setValue] = useState(options[0].value);
 
-  const onChange = ({ query, error }) => {
+  const basicSelectId = useGeneratedHtmlId({ prefix: 'basicSelect' });
+  const colorStyles = useEuiBackgroundColorCSS();
+  const cssStyles = [colorStyles['accent']];
+
+  const onChange = (e) => {
+    setValue(e.target.value);
+  };
+
+  const onchange = ({ query, error }) => {
     if (error) {
       setError(error);
     } else {
@@ -43,18 +75,18 @@ export default function Home() {
       setQuery(query);
     }
   };
-
+console.log(value);
   useEffect(() => {
     if (query.text.length > 0) {
       axios
         .get(
-          `http://localhost:8983/solr/abstracts/select?q=title:${query.text}`
+          `http://localhost:8983/solr/abstracts/select?q=title:${query.text} categories:${value}&q.op=AND`
         )
         .then((response) => {
           setResults(response.data.response.docs);
         });
     }
-  }, [query]);
+  }, [query, value]);
   console.log(results);
 
   const toggleIncremental = () => {
@@ -66,33 +98,11 @@ export default function Home() {
   };
 
   const renderSearch = () => {
-    const filters = [{
-      type: 'field_value_selection',
-      field: 'tag',
-      name: 'Tag',
-      multiSelect: 'or',
-      operator: 'exact',
-      cache: 10000, // will cache the loaded tags for 10 sec
-      options: () => loadTags()
-    }];
-
     const schema = {
       strict: true,
       fields: {
         title: {
           type: 'string',
-        },
-        tag: {
-          type: 'string',
-          validate: (value) => {
-            if (value !== '' && !tags.some((tag) => tag.name === value)) {
-              throw new Error(
-                `unknown tag (possible values: ${tags
-                  .map((tag) => tag.name)
-                  .join(',')})`
-              );
-            }
-          },
         },
       },
     };
@@ -105,46 +115,10 @@ export default function Home() {
           incremental,
           schema,
         }}
-        //filters = {filters}
+        onChange={onchange}
         query={query}
-        onChange={onChange}
       />
     );
-  };
-
-  const renderError = () => {
-    if (!error) {
-      return;
-    }
-    return (
-      <Fragment>
-        <EuiCallOut
-          iconType="faceSad"
-          color="danger"
-          title={`Invalid search: ${error.message}`}
-        />
-        <EuiSpacer size="l" />
-      </Fragment>
-    );
-  };
-
-  const renderTable = () => {
-    const columns = [
-      {
-        name: 'Title',
-        field: 'title',
-      },
-      {
-        name: 'Tags',
-        field: 'tag',
-      },
-    ];
-
-    const queriedItems = EuiSearchBar.Query.execute(query, items, {
-      defaultFields: ['owner', 'tag', 'type'],
-    });
-
-    return <EuiBasicTable items={queriedItems} columns={columns} />;
   };
 
   let esQueryDsl;
@@ -162,8 +136,30 @@ export default function Home() {
   }
 
   return (
-    <Fragment>
-      {renderSearch()}
+    <>
+      <EuiSpacer />
+      <EuiText>
+        <EuiTextAlign textAlign="center">
+          <h1>SDSS</h1>
+        </EuiTextAlign>
+      </EuiText>
+      <EuiFlexGroup justifyContent="spaceAround">
+        <EuiFlexItem grow={false}>SDSS</EuiFlexItem>
+      </EuiFlexGroup>
+      <EuiSpacer />
+      <EuiFlexGroup justifyContent="center">
+        <EuiFlexItem grow={true} style={{ maxWidth: 700 }}>{renderSearch()}</EuiFlexItem>
+        <EuiSpacer />
+        <EuiFlexItem grow={false}>
+        <EuiSelect
+          id={basicSelectId}
+          options={options}
+          value={value}
+          onChange={(e) => onChange(e)}
+          aria-label="Use aria labels when no actual label is in use"
+        />
+        </EuiFlexItem>
+      </EuiFlexGroup>
       {results?.map((result, index) => (
         <ResultsBox
         key={index}
@@ -172,6 +168,6 @@ export default function Home() {
         authors={result.authors}
         ></ResultsBox>
       ))}
-    </Fragment>
+    </>
   );
 };
