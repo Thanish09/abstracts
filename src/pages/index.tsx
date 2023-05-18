@@ -1,79 +1,38 @@
 import axios from "axios";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { EuiSearchBar } from "@elastic/eui";
-const initialQuery = EuiSearchBar.Query.MATCH_ALL;
-export default function Home() {
-  const [searchInput, setSearchInput] = useState("");
-  const [results, setResults] = useState("");
-  const [incremental, setIncremental] = useState(false);
+import { euiPaletteColorBlind } from "@elastic/eui";
+import Group, { FacetGroupProps } from "@/components/Facets/Group";
+import { flattenFacets } from "@/utils/facets";
 
-  const handleChange = (e) => {
-    e.preventDefault();
-    setSearchInput(e.target.value);
-  };
+export default function Home() {
+  const [facetFields, setFacetFields] = useState<{
+    [key: string]: (string | number)[];
+  } | null>(null);
+
+  const FACETS: FacetGroupProps[] = [
+    {
+      title: "Authors",
+      color: euiPaletteColorBlind()[0],
+      facets: flattenFacets(facetFields?.authors || []),
+    },
+    {
+      title: "Versions",
+      color: euiPaletteColorBlind()[1],
+      facets: flattenFacets(facetFields?.["versions.version"] || []),
+    },
+  ];
 
   useEffect(() => {
-    if (searchInput.length > 0) {
-      axios
-        .get(
-          `http://localhost:8983/solr/abstracts/select?q=title:${searchInput}`
-        )
-        .then((response) => {
-          console.log(response);
-          setResults(response.data.response.docs);
-        });
-    }
-  }, [searchInput]);
-  console.log(results);
-  const tags = [
-    { name: "marketing", color: "danger" },
-    { name: "finance", color: "success" },
-    { name: "eng", color: "success" },
-    { name: "sales", color: "warning" },
-    { name: "ga", color: "success" },
-  ];
-  const schema = {
-    strict: true,
-    fields: {
-      type: {
-        type: "string",
-      },
-      active: {
-        type: "boolean",
-      },
-      status: {
-        type: "string",
-      },
-      followers: {
-        type: "number",
-      },
-      comments: {
-        type: "number",
-      },
-      stars: {
-        type: "number",
-      },
-      created: {
-        type: "date",
-      },
-      owner: {
-        type: "string",
-      },
-      tag: {
-        type: "string",
-        validate: (value) => {
-          if (value !== "" && !tags.some((tag) => tag.name === value)) {
-            throw new Error(
-              `unknown tag (possible values: ${tags
-                .map((tag) => tag.name)
-                .join(",")})`
-            );
-          }
-        },
-      },
-    },
-  };
+    axios
+      .get(
+        `http://localhost:8983/solr/abstracts/select?facet.contains.ignoreCase=false&facet=true&facet.field=versions.version&facet.field=authors&facet.limit=20&facet.missing=false&facet.sort=count&facet=true&indent=true&q.op=OR&q=title%3Aautomata&useParams=`
+      )
+      .then((response) => {
+        setFacetFields(response.data.facet_counts.facet_fields);
+      });
+  }, []);
+
   return (
     <>
       <Head>
@@ -82,21 +41,14 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <input
-        type="search"
-        placeholder="Search here"
-        onChange={handleChange}
-        value={searchInput}
-      />
-      <EuiSearchBar
-        defaultQuery={initialQuery}
-        box={{
-          placeholder: "type:visualization -is:active joe",
-          incremental,
-          schema,
-        }}
-      />
+      {FACETS.map((facet) => (
+        <Group
+          key={facet.title}
+          title={facet.title}
+          color={facet.color}
+          facets={facet.facets}
+        />
+      ))}
     </>
   );
 }
