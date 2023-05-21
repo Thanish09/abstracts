@@ -3,6 +3,7 @@ import axios from "axios";
 export type SearchParams = {
   input: string;
   category: string;
+  start: number;
 };
 
 export type SearchResultType = {
@@ -10,17 +11,20 @@ export type SearchResultType = {
   abstract: string;
   authors: string;
 };
-export const search = async ({ input, category }: SearchParams) => {
+export const search = async ({ input, category, start }: SearchParams) => {
   const {
     data: {
       response: { docs },
+      facet_counts: { facet_fields },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?q=title:${input} categories:${category}&q.op=AND&fl=title,abstract,authors,categories,comments,score`,
+    `http://localhost:8983/solr/abstracts/select?facet.field=authors&facet=true&indent=true&q.op=OR&q=title%3A${input}%20categories%3A${category}&useParams&facet.field=versions.version&start=${
+      start * 10
+    }&fl=title,abstract,authors,categories,comments,score`,
     {
       method: "GET",
     }
   );
 
-  return docs;
+  return { docs, facet_fields };
 };

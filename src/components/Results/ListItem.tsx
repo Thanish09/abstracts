@@ -7,6 +7,7 @@ import {
   EuiFlexItem,
   EuiFlexGroup,
   EuiAvatar,
+  EuiPanel,
 } from "@elastic/eui";
 
 export type Props = {
@@ -18,36 +19,28 @@ export type Props = {
 
 const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
   return (
-    <EuiFlexGroup justifyContent="spaceAround">
-      <EuiFlexItem style={{ maxWidth: 700 }}>
-        <EuiCard 
-          textAlign="left"
-          title={title}
-          betaBadgeProps={{
-            css: {transform: "translateX(250%) translateY(2%)"},
-            color: "accent",
-            label: `Match ${score.toFixed(3)}`,
-          }}
-          onClick={() => {}}
-        >
-          <EuiDescriptionList>
-            <EuiDescriptionListDescription>
-              {abstract[0].substring(0, 200) + "..."}
-            </EuiDescriptionListDescription>
-            <EuiSpacer />
-            <EuiDescriptionListDescription>
-              <EuiFlexGroup gutterSize="s" alignItems="center">
-                  {authors[0].split(',').map((author, index) => (
-                    <EuiFlexItem grow={false} key={index}>
-                      <EuiAvatar size="m" name={author} />
-                    </EuiFlexItem>
-                  ))}
-              </EuiFlexGroup>
-            </EuiDescriptionListDescription>
-          </EuiDescriptionList>
-        </EuiCard>
-      </EuiFlexItem>
-    </EuiFlexGroup>
+    <EuiFlexItem style={{ maxWidth: 700 }}>
+      <EuiCard
+        textAlign="left"
+        title={title}
+        betaBadgeProps={{
+          css: { transform: "translateX(250%) translateY(2%)" },
+          color: "accent",
+          label: `Match ${score.toFixed(3)}`,
+        }}
+        onClick={() => {}}
+      >
+        <EuiDescriptionList>
+          <EuiDescriptionListDescription>
+            {abstract[0].substring(0, 200) + "..."}
+          </EuiDescriptionListDescription>
+          <EuiSpacer />
+          <EuiDescriptionListDescription>
+            {authors}
+          </EuiDescriptionListDescription>
+        </EuiDescriptionList>
+      </EuiCard>
+    </EuiFlexItem>
   );
 };
 

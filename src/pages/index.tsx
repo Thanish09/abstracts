@@ -10,6 +10,7 @@ import {
   EuiSearchBarOnChangeArgs,
   QueryType,
   Query,
+  EuiPagination,
 } from "@elastic/eui";
 import React, { useEffect, useState, useMemo } from "react";
 import { euiPaletteColorBlind } from "@elastic/eui";
@@ -18,39 +19,40 @@ import { flattenFacets } from "@/utils/facets";
 import { useSearch } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
+import Suggestions from "@/components/Suggestions";
 
 const initialQuery = EuiSearchBar.Query.MATCH_ALL;
 
 export default function Home() {
-  const [facetFields, setFacetFields] = useState<{
-    [key: string]: (string | number)[];
-  } | null>(null);
+  const [query, setQuery] = useState<QueryType | null>(initialQuery);
+  const [value, setValue] = useState(dropdownOptions[0].value);
+  const [incremental, setIncremental] = useState(false);
+  const [activePage, setActivePage] = useState(0);
+
+  const {
+    data: results,
+    isLoading: isResultsLoading,
+    isError: isResultError,
+  } = useSearch((query as Query)?.text || "", value, activePage);
 
   const FACETS: FacetGroupProps[] = useMemo(
     () => [
       {
         title: "Authors",
         color: euiPaletteColorBlind()[0],
-        facets: flattenFacets(facetFields?.authors || []),
+
+        facets: flattenFacets(results?.facet_fields?.authors || []),
       },
       {
         title: "Versions",
         color: euiPaletteColorBlind()[1],
-        facets: flattenFacets(facetFields?.["versions.version"] || []),
+        facets: flattenFacets(
+          results?.facet_fields?.["versions.version"] || []
+        ),
       },
     ],
-    [facetFields]
+    [results?.facet_fields]
   );
-
-  const [query, setQuery] = useState<QueryType | null>(initialQuery);
-  const [value, setValue] = useState(dropdownOptions[0].value);
-  const [incremental, setIncremental] = useState(false);
-
-  const {
-    data: results,
-    isLoading: isResultsLoading,
-    isError: isResultError,
-  } = useSearch((query as Query)?.text || "", value);
 
   const basicSelectId = useGeneratedHtmlId({ prefix: "basicSelect" });
 
@@ -85,7 +87,7 @@ export default function Home() {
       />
     );
   };
-  console.log(results);
+
   return (
     <>
       <EuiSpacer />
@@ -113,8 +115,33 @@ export default function Home() {
           />
         </EuiFlexItem>
       </EuiFlexGroup>
-
-      <List items={results} />
+      <EuiFlexGroup>
+        <EuiFlexItem>
+          {FACETS.map((facet) => (
+            <>
+              <EuiSpacer />
+              <Group
+                isLoading={isResultsLoading}
+                key={facet.title}
+                title={facet.title}
+                facets={facet.facets}
+                color={facet.color}
+              />
+            </>
+          ))}
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <List items={results?.docs} isLoading={isResultsLoading} />
+          <EuiPagination
+            pageCount={0}
+            activePage={activePage}
+            onPageClick={(acP) => setActivePage(acP)}
+          />
+        </EuiFlexItem>
+        <EuiFlexItem>
+          <Suggestions />
+        </EuiFlexItem>
+      </EuiFlexGroup>
     </>
   );
 }
