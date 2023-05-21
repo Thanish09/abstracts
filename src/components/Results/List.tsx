@@ -11,27 +11,30 @@ const skeleton = [1, 2, 3, 4, 5, 6, 7];
 const List: React.FC<Props> = ({ items, isLoading = false }) => {
   return (
     <>
-      <EuiPanel grow={false}style={{backgroundColor: "transparent"}} hasShadow={false}>
+      <EuiPanel
+        grow={false}
+        style={{ backgroundColor: "transparent" }}
+        hasShadow={false}
+      >
         {isLoading
           ? skeleton.map((skl) => (
               <>
-                <EuiSpacer />
+                <EuiSpacer style={{ maxWidth: 300 }} />
                 <SkeletonList />
               </>
             ))
           : items?.map((result, index) => (
               <>
-                <EuiSpacer />
-
                 <ListItem
                   key={index}
                   title={result.title}
                   abstract={result.abstract}
                   authors={result.authors}
+                  score={result.score}
                 />
+                <EuiSpacer style={{ maxWidth: 300 }} />
               </>
             ))}
-        ;
       </EuiPanel>
     </>
   );

@@ -1,12 +1,12 @@
 import React from "react";
 import {
   EuiDescriptionList,
-  EuiDescriptionListTitle,
   EuiDescriptionListDescription,
   EuiCard,
   EuiSpacer,
   EuiFlexItem,
   EuiFlexGroup,
+  EuiAvatar,
   EuiPanel,
 } from "@elastic/eui";
 
@@ -14,20 +14,36 @@ export type Props = {
   title: string;
   abstract: string;
   authors: string;
+  score: number;
 };
 
-const ListItem: React.FC<Props> = ({ title, abstract, authors }) => {
+const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
   return (
-    <EuiFlexItem style={{ maxWidth: 700 }}>
-      <EuiCard textAlign="center" title="">
+    <EuiFlexItem style={{ maxWidth: 700 }} grow={false}>
+      <EuiCard
+        textAlign="left"
+        title={title}
+        betaBadgeProps={{
+          css: { transform: "translateX(170%) translateY(2%)" },
+          color: "accent",
+          label: `Match ${score.toFixed(3)}`,
+        }}
+        onClick={() => {}}
+      >
         <EuiDescriptionList>
-          <EuiDescriptionListTitle>{title}</EuiDescriptionListTitle>
           <EuiDescriptionListDescription>
             {abstract[0].substring(0, 200) + "..."}
           </EuiDescriptionListDescription>
           <EuiSpacer />
           <EuiDescriptionListDescription>
-            {authors}
+            <EuiFlexGroup gutterSize="s" alignItems="center">
+              {authors[0].split(",").map((author, index) => (
+                <EuiFlexItem grow={false} key={index}>
+                  <EuiAvatar size="m" name={author} />
+                </EuiFlexItem>
+              ))}
+               
+            </EuiFlexGroup>
           </EuiDescriptionListDescription>
         </EuiDescriptionList>
       </EuiCard>

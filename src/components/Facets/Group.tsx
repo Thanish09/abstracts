@@ -1,4 +1,9 @@
-import { EuiFacetGroup, EuiPanel, EuiSkeletonText, EuiText } from "@elastic/eui";
+import {
+  EuiFacetGroup,
+  EuiPanel,
+  EuiSkeletonText,
+  EuiText,
+} from "@elastic/eui";
 import React from "react";
 import FacetButton, { Props as FacetButtonProps } from ".";
 
@@ -13,10 +18,10 @@ const Group: React.FC<FacetGroupProps> = ({
   facets,
   title,
   color,
-  isLoading=false,
+  isLoading = false,
 }) => {
   return (
-    <EuiPanel grow={false}>
+    <EuiPanel grow={false} style={{ maxWidth: 300 }}>
       <EuiText grow={false}>
         <h6>{title}</h6>
         <div
@@ -34,7 +39,7 @@ const Group: React.FC<FacetGroupProps> = ({
               contentAriaLabel="Demo skeleton text"
             />
           ) : (
-            <EuiFacetGroup style={{ maxWidth: 100 }}>
+            <EuiFacetGroup style={{ maxWidth: 300 }}>
               {facets.map((facet) => (
                 <FacetButton
                   key={`${facet.label}-${facet.quantity}`}

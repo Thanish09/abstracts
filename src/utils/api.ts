@@ -20,7 +20,7 @@ export const search = async ({ input, category, start }: SearchParams) => {
   } = await axios.get(
     `http://localhost:8983/solr/abstracts/select?facet.field=authors&facet=true&indent=true&q.op=OR&q=title%3A${input}%20categories%3A${category}&useParams&facet.field=versions.version&start=${
       start * 10
-    }`,
+    }&fl=title,abstract,authors,categories,comments,score`,
     {
       method: "GET",
     }
