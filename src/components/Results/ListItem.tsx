@@ -19,12 +19,12 @@ export type Props = {
 
 const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
   return (
-    <EuiFlexItem style={{ maxWidth: 700 }}>
+    <EuiFlexItem style={{ maxWidth: 700 }} grow={false}>
       <EuiCard
         textAlign="left"
         title={title}
         betaBadgeProps={{
-          css: { transform: "translateX(250%) translateY(2%)" },
+          css: { transform: "translateX(170%) translateY(2%)" },
           color: "accent",
           label: `Match ${score.toFixed(3)}`,
         }}
@@ -36,7 +36,14 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
           </EuiDescriptionListDescription>
           <EuiSpacer />
           <EuiDescriptionListDescription>
-            {authors}
+            <EuiFlexGroup gutterSize="s" alignItems="center">
+              {authors[0].split(",").map((author, index) => (
+                <EuiFlexItem grow={false} key={index}>
+                  <EuiAvatar size="m" name={author} />
+                </EuiFlexItem>
+              ))}
+               
+            </EuiFlexGroup>
           </EuiDescriptionListDescription>
         </EuiDescriptionList>
       </EuiCard>
