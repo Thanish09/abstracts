@@ -28,6 +28,7 @@ import { useSearch } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
 import Suggestions from "@/components/Suggestions";
+import ResultPreview from "@/components/Results/ResultPreview";
 import Placeholder from "@/components/Placeholder";
 import Keyword from "@/components/Keyword";
 
@@ -44,7 +45,7 @@ export default function Home() {
     isLoading: isResultsLoading,
     isError: isResultError,
   } = useSearch((query as Query)?.text || "", value, activePage);
-  console.log(query);
+  //console.log(query);
   const FACETS: FacetGroupProps[] = useMemo(
     () => [
       {
@@ -173,9 +174,9 @@ export default function Home() {
               onPageClick={(acP) => setActivePage(acP)}
             />
           </EuiFlexItem>
-          <EuiFlexItem grow={false} style={{ marginTop: "1rem" }}>
+          {/* <EuiFlexItem grow={false} style={{ marginTop: "1rem" }}>
             <Suggestions />
-          </EuiFlexItem>
+          </EuiFlexItem> */}
         </EuiFlexGroup>
       ) : (
         <Placeholder />

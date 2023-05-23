@@ -4,7 +4,7 @@ type DropdownOption = {
 };
 
 export const dropdownOptions: DropdownOption[] = [
-  { value: '""', text: "category" },
+  { value: "", text: "category" },
   { value: "cs.AI", text: "cs.AI" },
   { value: "cs.AR", text: "cs.AR" },
   { value: "cs.CC", text: "cs.CC" },
