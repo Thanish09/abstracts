@@ -7,6 +7,7 @@ export type Props = {
   isSelected?: boolean;
   label: string;
   iconColor: string;
+  onClick: (e: string) => void;
 };
 
 const FacetButton: React.FC<Props> = ({
@@ -14,6 +15,7 @@ const FacetButton: React.FC<Props> = ({
   quantity,
   isSelected = false,
   label,
+  onClick,
   iconColor,
 }) => {
   return (
@@ -22,6 +24,7 @@ const FacetButton: React.FC<Props> = ({
       quantity={quantity}
       icon={<EuiIcon type="dot" color={iconColor} />}
       isSelected={isSelected}
+      onClick={() => onClick(label)}
     >
       {label}
     </EuiFacetButton>

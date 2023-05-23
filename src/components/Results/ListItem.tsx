@@ -32,12 +32,12 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
       >
         <EuiDescriptionList>
           <EuiDescriptionListDescription>
-            {abstract[0].substring(0, 200) + "..."}
+            {abstract.substring(0, 200) + "..."}
           </EuiDescriptionListDescription>
           <EuiSpacer />
           <EuiDescriptionListDescription>
             <EuiFlexGroup gutterSize="s" alignItems="center">
-              {authors[0].split(",").map((author, index) => (
+              {authors.split(",").map((author, index) => (
                 <EuiFlexItem grow={false} key={index}>
                   <EuiAvatar size="m" name={author} />
                 </EuiFlexItem>
