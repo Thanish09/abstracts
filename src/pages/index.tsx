@@ -23,8 +23,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import { euiPaletteColorBlind } from "@elastic/eui";
 import { css } from "@emotion/react";
 import Group, { FacetGroupProps } from "@/components/Facets/Group";
-import { flattenFacets } from "@/utils/facets";
-import { useSearch } from "@/utils/queries";
+import { flattenFacets, flattenSpellChecks } from "@/utils/facets";
+import { useSearch, useSpellCheck } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
 import Suggestions from "@/components/Suggestions";
@@ -35,28 +35,71 @@ import Keyword from "@/components/Keyword";
 const initialQuery = EuiSearchBar.Query.MATCH_ALL;
 
 export default function Home() {
-  const [query, setQuery] = useState<QueryType | null>(initialQuery);
-  const [value, setValue] = useState(dropdownOptions[0].value);
+  const [query, setQuery] = useState<QueryType | null>(null);
+  const [value, setValue] = useState("");
   const [incremental, setIncremental] = useState(false);
   const [activePage, setActivePage] = useState(0);
-
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
+  const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
   const {
     data: results,
     isLoading: isResultsLoading,
     isError: isResultError,
-  } = useSearch((query as Query)?.text || "", value, activePage);
-  //console.log(query);
-  const FACETS: FacetGroupProps[] = useMemo(
+  } = useSearch(
+    (query as Query)?.text || (query as string) || "",
+    value,
+    activePage,
+    selectedAuthors
+  );
+  console.log(value);
+  const {
+    data: spellChecks,
+    isLoading: isSpellChecksLoading,
+    isError: isSpellChackError,
+  } = useSpellCheck((query as Query)?.text || (query as string) || "");
+
+  const sortedAuthors = useMemo(() => {
+    const listOfAuthors = flattenFacets(results?.facet_fields?.authors || []);
+    const orderAuthors = [
+      ...listOfAuthors.filter((author) =>
+        selectedAuthors.includes(author.label)
+      ),
+      ...listOfAuthors.filter(
+        (author) => !selectedAuthors.includes(author.label)
+      ),
+    ];
+
+    return orderAuthors.filter((author) => author.quantity > 0);
+  }, [results]);
+
+  const handleClickAuthors = (author: string) => {
+    if (!!selectedAuthors.includes(author)) {
+      const filteredAuthors = selectedAuthors.filter((ath) => ath !== author);
+      setSelectedAuthors(() => [...filteredAuthors]);
+    } else {
+      setSelectedAuthors((prev) => [...prev, author]);
+    }
+  };
+
+  const handleClickVersions = (version: string) => {
+    setSelectedVersions((prev) => [...prev, version]);
+  };
+
+  const FACETS: Pick<
+    FacetGroupProps,
+    "title" | "color" | "onClick" | "facets"
+  >[] = useMemo(
     () => [
       {
         title: "Authors",
         color: euiPaletteColorBlind()[0],
-
-        facets: flattenFacets(results?.facet_fields?.authors || []),
+        onClick: handleClickAuthors,
+        facets: sortedAuthors,
       },
       {
         title: "Versions",
         color: euiPaletteColorBlind()[1],
+        onClick: handleClickVersions,
         facets: flattenFacets(
           results?.facet_fields?.["versions.version"] || []
         ),
@@ -99,6 +142,10 @@ export default function Home() {
     );
   };
 
+  const handleClickKeyword = (key: string) => {
+    setQuery(key);
+  };
+
   return (
     <>
       <EuiSpacer />
@@ -118,7 +165,6 @@ export default function Home() {
           <EuiSelect
             id={basicSelectId}
             options={dropdownOptions}
-            value={value}
             onChange={(e) => onDropdownChange(e)}
             aria-label="Use aria labels when no actual label is in use"
           />
@@ -140,12 +186,22 @@ export default function Home() {
           </EuiTitle>
         </EuiFlexGroup>
         <EuiFlexGroup justifyContent="center">
-          <Keyword
-            keyword="automata theory"
-            color={2}
-            //@ts-ignore
-            onClick={(e) => setQuery(e.target.outerText)}
-          />
+          {spellChecks ? (
+            flattenSpellChecks(spellChecks)
+              .filter((spl, idx) => {
+                if (idx < 4) return spl;
+              })
+              .map((kw, idx) => (
+                <Keyword
+                  keyword={kw.collationQuery}
+                  color={idx}
+                  //@ts-ignore
+                  onClick={handleClickKeyword}
+                />
+              ))
+          ) : (
+            <></>
+          )}
         </EuiFlexGroup>
       </EuiFlexGroup>
       {!!results || !!isResultsLoading ? (
@@ -159,6 +215,8 @@ export default function Home() {
                   title={facet.title}
                   facets={facet.facets}
                   color={facet.color}
+                  onClick={facet.onClick}
+                  selectedList={selectedAuthors}
                 />
                 <EuiSpacer style={{ width: 300 }} />
               </>

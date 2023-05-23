@@ -5,7 +5,7 @@ const colors = ["primary", "accent", "success", "warning"];
 
 type Props = {
   keyword: string;
-  onClick: (e: MouseEventHandler<HTMLButtonElement>) => void;
+  onClick: (e: string) => void;
   color: number;
 };
 
@@ -15,7 +15,7 @@ const Keyword: React.FC<Props> = ({ keyword, onClick, color }) => {
       <EuiBadge
         color={colors.find((_, idx) => idx === color) || "primary"}
         //@ts-ignore
-        onClick={onClick}
+        onClick={() => onClick(keyword)}
         onClickAriaLabel="Keywords clicked"
       >
         {keyword}
