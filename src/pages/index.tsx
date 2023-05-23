@@ -24,12 +24,14 @@ import { euiPaletteColorBlind } from "@elastic/eui";
 import { css } from "@emotion/react";
 import Group, { FacetGroupProps } from "@/components/Facets/Group";
 import { flattenFacets, flattenSpellChecks } from "@/utils/facets";
-import { useSearch, useSpellCheck } from "@/utils/queries";
+import { useSearch, useSpellCheck, useSuggestWords } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
 import Suggestions from "@/components/Suggestions";
 import Placeholder from "@/components/Placeholder";
 import Keyword from "@/components/Keyword";
+import ReactSearchBox from "react-search-box";
+import { debounce } from "lodash";
 
 const initialQuery = EuiSearchBar.Query.MATCH_ALL;
 
@@ -50,12 +52,17 @@ export default function Home() {
     activePage,
     selectedAuthors
   );
-  console.log(value);
+  //console.log(value);
   const {
     data: spellChecks,
     isLoading: isSpellChecksLoading,
     isError: isSpellChackError,
   } = useSpellCheck((query as Query)?.text || (query as string) || "");
+  const {
+    data: suggestWords,
+    isLoading: isSuggestWordsLoading,
+    isError: isSuggestWordsError,
+  } = useSuggestWords((query as Query)?.text || (query as string) || "");
 
   const sortedAuthors = useMemo(() => {
     const listOfAuthors = flattenFacets(results?.facet_fields?.authors || []);
@@ -117,33 +124,26 @@ export default function Home() {
     setQuery(query);
   };
 
-  const renderSearch = () => {
-    const schema = {
-      strict: true,
-      fields: {
-        title: {
-          type: "string",
-        },
-      },
-    };
-
-    return (
-      <EuiSearchBar
-        defaultQuery={initialQuery}
-        box={{
-          placeholder: "Search something...",
-          incremental,
-          schema,
-        }}
-        onChange={onSearchChange}
-        query={query as Query}
-      />
-    );
+  const handleSuggestWord = (word: string) => {
+    setQuery(word);
   };
+
+  
 
   const handleClickKeyword = (key: string) => {
     setQuery(key);
   };
+
+  const debouncedSearch = debounce((value) => {
+    setQuery(value);
+  }, 6000);
+
+
+  React.useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   return (
     <>
@@ -153,11 +153,28 @@ export default function Home() {
         title={<h2>Arxiv Search</h2>}
         body={<p>powered by Solr Search</p>}
       />
-
       <EuiSpacer />
       <EuiFlexGroup justifyContent="center">
         <EuiFlexItem grow={true} style={{ maxWidth: 700 }}>
-          {renderSearch()}
+          <ReactSearchBox
+            placeholder="Search something..."
+            data={
+              suggestWords?.[query]
+                ? suggestWords.map((sw) => ({
+                    key: sw["term"],
+                    value: sw["term"],
+                  }))
+                : []
+            }
+            onSelect={(record: any) => handleSuggestWord(record)}
+            onFocus={() => {
+              console.log("This function is called when is focussed");
+            }}
+            onChange={(val) => debouncedSearch(val)}
+            autoFocus
+            leftIcon={<>🎨</>}
+            iconBoxSize="48px"
+          />
         </EuiFlexItem>
         {/* <EuiSpacer /> */}
         <EuiFlexItem grow={false}>

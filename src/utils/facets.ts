@@ -38,16 +38,16 @@ export const flattenSpellChecks = (
 };
 
 export const injectURLParams = (authors: string[], categories?: string) => {
-  console.log("Am i running");
+  //console.log("Am i running");
   let params = "";
-  console.log(typeof categories);
+  //console.log(typeof categories);
   if (categories !== "") {
-    console.log("Im running huu");
+    //console.log("Im running huu");
     params += ` AND categories%3A${categories}`;
   }
 
   if (authors?.length > 0) {
-    console.log("Why am I runnig here");
+    //console.log("Why am I runnig here");
     authors.forEach((a) => {
       params += ` AND authors%3A"${a}"`;
     });

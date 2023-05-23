@@ -37,7 +37,7 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
           <EuiSpacer />
           <EuiDescriptionListDescription>
             <EuiFlexGroup gutterSize="s" alignItems="center">
-              {authors.split(",").map((author, index) => (
+              {authors.split(/\s+and\s+|,\s*/).map((author, index) => (
                 <EuiFlexItem grow={false} key={index}>
                   <EuiAvatar size="m" name={author} />
                 </EuiFlexItem>

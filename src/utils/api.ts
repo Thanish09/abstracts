@@ -20,7 +20,7 @@ export const search = async ({
   authors,
 }: SearchParams) => {
   const injectableParams = injectURLParams(authors, category);
-  console.log(injectableParams);
+  //console.log(injectableParams);
   const {
     data: {
       response: { docs },
@@ -45,6 +45,26 @@ export const spellcheck = async ({ input }: SpellCheckParams) => {
   } = await axios.get(
     `http://localhost:8983/solr/abstracts/spell?df=title&spellcheck.q=${input}&spellcheck=true&spellcheck.collateParam.q.op=AND`
   );
-  console.log(collations);
+  //console.log(collations);
   return collations;
+};
+
+export type SuggestWordParams = { input: string };
+
+export type SuggestionResponse = {
+  suggest: {
+    default: {
+      [key: string]: {
+        suggestions: { term: string }[];
+      };
+    };
+  };
+};
+export const suggestWord = async ({ input }: SuggestWordParams) => {
+  const {
+    data: { suggest },
+  } = await axios.get<SuggestionResponse>(
+    `http://localhost:8983/solr/abstracts/suggest?suggest=true&suggest.dictionary=default&suggest.q=${input}`
+  );
+  return suggest.default
 };
