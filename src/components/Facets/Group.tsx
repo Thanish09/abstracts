@@ -11,13 +11,17 @@ export type FacetGroupProps = {
   facets: Pick<FacetButtonProps, "label" | "quantity">[];
   title: string;
   color: string;
+  onClick: (e: string) => void;
   isLoading?: boolean;
+  selectedList: string[];
 };
 
 const Group: React.FC<FacetGroupProps> = ({
   facets,
   title,
   color,
+  onClick,
+  selectedList,
   isLoading = false,
 }) => {
   return (
@@ -47,6 +51,8 @@ const Group: React.FC<FacetGroupProps> = ({
                   iconColor={color}
                   quantity={facet.quantity}
                   label={facet.label}
+                  onClick={onClick}
+                  isSelected={!!selectedList.find((sL) => sL === facet.label)}
                 />
               ))}
             </EuiFacetGroup>
