@@ -9,21 +9,21 @@ import {
   EuiAvatar,
   EuiPanel,
 } from "@elastic/eui";
-import ResultPreview from "./ResultPreview";
+import { PreviewType } from "./ResultPreview";
 
-export type Props = {
-  title: string;
-  abstract: string;
-  authors: string;
+export type Props = PreviewType & {
   score: number;
+  handlePreview: (p: PreviewType) => void;
 };
 
-const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
-  const [bool, setBool] = useState(false);
-  const showResult = () => {
-    setBool(true);
-  };
-console.log(bool);
+const ListItem: React.FC<Props> = ({
+  id,
+  title,
+  abstract,
+  authors,
+  score,
+  handlePreview,
+}) => {
   return (
     <EuiFlexItem style={{ maxWidth: 700 }} grow={false}>
       <EuiCard
@@ -34,7 +34,7 @@ console.log(bool);
           color: "accent",
           label: `Match ${score.toFixed(3)}`,
         }}
-        onClick={showResult}
+        onClick={() => handlePreview({ id, title, abstract, authors, score })}
       >
         <EuiDescriptionList>
           <EuiDescriptionListDescription>
@@ -48,16 +48,10 @@ console.log(bool);
                   <EuiAvatar size="m" name={author} />
                 </EuiFlexItem>
               ))}
-               
             </EuiFlexGroup>
           </EuiDescriptionListDescription>
         </EuiDescriptionList>
       </EuiCard>
-      <EuiFlexItem style={{maxWidth: 300}} grow={false}>
-        {bool? (
-          <ResultPreview title={title} abstract={abstract} authors={authors} score={score} />
-        ): null}
-      </EuiFlexItem>
     </EuiFlexItem>
   );
 };

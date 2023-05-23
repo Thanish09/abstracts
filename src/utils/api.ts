@@ -1,5 +1,6 @@
 import axios from "axios";
 import { injectURLParams } from "./facets";
+import { QueryFunction } from "@tanstack/react-query";
 
 export type SearchParams = {
   input: string;
@@ -20,14 +21,14 @@ export const search = async ({
   authors,
 }: SearchParams) => {
   const injectableParams = injectURLParams(authors, category);
-  console.log(injectableParams);
+
   const {
     data: {
       response: { docs },
       facet_counts: { facet_fields },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}&useParams=`,
+    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}&useParams=`,
     {
       method: "GET",
     }
@@ -45,6 +46,31 @@ export const spellcheck = async ({ input }: SpellCheckParams) => {
   } = await axios.get(
     `http://localhost:8983/solr/abstracts/spell?df=title&spellcheck.q=${input}&spellcheck=true&spellcheck.collateParam.q.op=AND`
   );
-  console.log(collations);
+
   return collations;
+};
+
+type MoreLikeThisParams = {
+  documentId: string;
+};
+
+type MoreLikeThisResponse = {
+  response: {
+    docs: {
+      title: string;
+      abstract: string;
+    }[];
+  };
+};
+
+export const getMoreLikeThis = async ({ documentId }: MoreLikeThisParams) => {
+  const {
+    data: {
+      response: { docs },
+    },
+  } = await axios.get<MoreLikeThisResponse>(
+    `http://localhost:8983/solr/abstracts/mlt?mlt.fl=abstract&mlt.interestingTerms=detail&mlt.match.include=true&mlt.mindf=0&mlt.mintf=0&q=id:${documentId}&fl=title,abstract`
+  );
+
+  return docs;
 };
