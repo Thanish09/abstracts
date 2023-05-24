@@ -3,9 +3,9 @@ import { redisClient } from "@/utils/redis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type GetResponse = {
-  keyword: string;
+  node: string;
   found: boolean;
-  dateAdded?: string;
+  createdTime?: string;
 };
 
 type PostResponse = {
@@ -20,18 +20,18 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GetResponse | PostResponse>
 ) {
-  const suggest = req.query.suggest as string;
+  const node = req.query.node as string;
   const keyword = req.body.keyword as string;
 
   switch (req.method) {
     case "GET":
-      const suggestVal = await redisClient.get(suggest);
-      if (!!suggestVal) {
+      const nodeBuiltStatus = await redisClient.get(node);
+      if (!!nodeBuiltStatus) {
         return res
           .status(200)
-          .json({ found: true, keyword: suggest, dateAdded: suggestVal });
+          .json({ found: true, node, createdTime: nodeBuiltStatus });
       }
-      return res.status(200).json({ found: false, keyword: suggest });
+      return res.status(200).json({ found: false, node });
     case "POST":
       await redisClient.set(keyword, Date.now());
       return res.status(201).json({ message: "Added" });

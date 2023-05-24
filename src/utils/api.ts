@@ -24,7 +24,7 @@ export const search = async ({
 }: SearchParams) => {
   const injectableParams = injectURLParams(authors, category);
   const rq = rerank
-    ? `&rq={!ltr model=my_SCS_model efi.text_dfr='${input}' efi.text_dfi='${input}' efi.text_ib='${input}' efi.text_lmd='${input}' efi.text_lmj='${input}' efi.text='${input}'}`
+    ? `&rq={!ltr model=_OriginalRanking_ model=my_SCS_model_4 efi.text_dfi="${input.toLowerCase()}" efi.text_lmj="${input.toLowerCase()}"}`
     : "";
   const {
     data: {
@@ -32,7 +32,7 @@ export const search = async ({
       facet_counts: { facet_fields },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}` +
+    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q='${input.toLowerCase()} OR abstract:${input.toLowerCase()}${injectableParams}'&start=${start}` +
       rq +
       "&useParams=",
     {
@@ -93,6 +93,7 @@ export type SuggestionResponse = {
   };
 };
 export const suggestWord = async ({ input }: SuggestWordParams) => {
+
   const {
     data: { suggest },
   } = await axios.get<SuggestionResponse>(
@@ -100,3 +101,5 @@ export const suggestWord = async ({ input }: SuggestWordParams) => {
   );
   return suggest.default;
 };
+
+
