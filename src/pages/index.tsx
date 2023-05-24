@@ -5,40 +5,32 @@ import {
   EuiSpacer,
   EuiFlexGroup,
   EuiFlexItem,
-  EuiSearchBarOnChangeArgs,
-  QueryType,
-  Query,
   EuiPagination,
   EuiEmptyPrompt,
-  EuiLoadingLogo,
-  EuiCallOut,
-  EuiLink,
-  EuiButton,
   EuiSwitch,
-  EuiBetaBadge,
   EuiTitle,
   EuiBadge,
 } from "@elastic/eui";
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+import Lottie from "lottie-react";
 import { euiPaletteColorBlind } from "@elastic/eui";
-import { css } from "@emotion/react";
 import Group, { FacetGroupProps } from "@/components/Facets/Group";
 import { flattenFacets, flattenSpellChecks } from "@/utils/facets";
 import { useSearch, useSpellCheck, useSuggestWords } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
-import Suggestions from "@/components/Suggestions";
+import ResultPreview, { PreviewType } from "@/components/Results/ResultPreview";
 import Placeholder from "@/components/Placeholder";
 import Keyword from "@/components/Keyword";
-import ReactSearchBox from "react-search-box";
-import { debounce } from "lodash";
-
-const initialQuery = EuiSearchBar.Query.MATCH_ALL;
+import SEARCH from "../assets/search.json";
+import Searchbar from "@/components/Searchbar";
 
 export default function Home() {
-  const [query, setQuery] = useState<QueryType | null>(null);
+  const [query, setQuery] = useState<string>("");
+  const [suggest, setSuggest] = useState<string>("");
   const [value, setValue] = useState("");
-  const [incremental, setIncremental] = useState(false);
+  const [ranked, setRanked] = useState(false);
+
   const [activePage, setActivePage] = useState(0);
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
@@ -46,23 +38,16 @@ export default function Home() {
     data: results,
     isLoading: isResultsLoading,
     isError: isResultError,
-  } = useSearch(
-    (query as Query)?.text || (query as string) || "",
-    value,
-    activePage,
-    selectedAuthors
-  );
+  } = useSearch(query, value, activePage, selectedAuthors, ranked);
   //console.log(value);
   const {
     data: spellChecks,
     isLoading: isSpellChecksLoading,
     isError: isSpellChackError,
-  } = useSpellCheck((query as Query)?.text || (query as string) || "");
-  const {
-    data: suggestWords,
-    isLoading: isSuggestWordsLoading,
-    isError: isSuggestWordsError,
-  } = useSuggestWords((query as Query)?.text || (query as string) || "");
+  } = useSpellCheck(query);
+
+  const resultPreviewRef = useRef<React.ElementRef<typeof ResultPreview>>(null);
+  const searchBarRef = useRef<React.ElementRef<typeof Searchbar>>(null);
 
   const sortedAuthors = useMemo(() => {
     const listOfAuthors = flattenFacets(results?.facet_fields?.authors || []);
@@ -120,61 +105,33 @@ export default function Home() {
     setValue(e.target.value);
   };
 
-  const onSearchChange = ({ query, error }: EuiSearchBarOnChangeArgs) => {
-    setQuery(query);
+  const handleSetSearch = (s: string) => {
+    searchBarRef.current?.onAddItem(s);
   };
-
-  const handleSuggestWord = (word: string) => {
-    setQuery(word);
-  };
-
-  
 
   const handleClickKeyword = (key: string) => {
+    handleSetSearch(key);
     setQuery(key);
   };
 
-  const debouncedSearch = debounce((value) => {
-    setQuery(value);
-  }, 6000);
-
-
-  React.useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
+  const handlePreview = (p: PreviewType) => {
+    resultPreviewRef.current?.onPreview(p);
+  };
 
   return (
     <>
       <EuiSpacer />
       <EuiEmptyPrompt
-        icon={<EuiLoadingLogo logo="logoKibana" size="xl" />}
+        icon={
+          <Lottie style={{ height: 50 }} animationData={SEARCH} loop={true} />
+        }
         title={<h2>Arxiv Search</h2>}
         body={<p>powered by Solr Search</p>}
       />
       <EuiSpacer />
       <EuiFlexGroup justifyContent="center">
         <EuiFlexItem grow={true} style={{ maxWidth: 700 }}>
-          <ReactSearchBox
-            placeholder="Search something..."
-            data={
-              suggestWords?.[query]
-                ? suggestWords.map((sw) => ({
-                    key: sw["term"],
-                    value: sw["term"],
-                  }))
-                : []
-            }
-            onSelect={(record: any) => handleSuggestWord(record)}
-            onFocus={() => {
-              console.log("This function is called when is focussed");
-            }}
-            onChange={(val) => debouncedSearch(val)}
-            autoFocus
-            leftIcon={<>🎨</>}
-            iconBoxSize="48px"
-          />
+          <Searchbar handleSearch={handleClickKeyword} ref={searchBarRef} />
         </EuiFlexItem>
         {/* <EuiSpacer /> */}
         <EuiFlexItem grow={false}>
@@ -187,71 +144,81 @@ export default function Home() {
         </EuiFlexItem>
         <EuiFlexItem grow={false} style={{ alignItems: "center" }}>
           <EuiSwitch
-            label="Boost search"
-            checked={false}
-            onChange={(e) => onChange(e)}
+            label="Re-rank search"
+            checked={ranked}
+            onChange={(e) => setRanked((prev) => !prev)}
           />
         </EuiFlexItem>
       </EuiFlexGroup>
 
-      <EuiFlexGroup justifyContent="center" direction="column">
-        <EuiSpacer size="xs" />
-        <EuiFlexGroup justifyContent="center">
-          <EuiTitle size="xxxs">
-            <h6>Suggested keywords</h6>
-          </EuiTitle>
-        </EuiFlexGroup>
-        <EuiFlexGroup justifyContent="center">
-          {spellChecks ? (
-            flattenSpellChecks(spellChecks)
-              .filter((spl, idx) => {
-                if (idx < 4) return spl;
-              })
-              .map((kw, idx) => (
-                <Keyword
-                  keyword={kw.collationQuery}
-                  color={idx}
-                  //@ts-ignore
-                  onClick={handleClickKeyword}
-                />
-              ))
-          ) : (
-            <></>
-          )}
-        </EuiFlexGroup>
-      </EuiFlexGroup>
-      {!!results || !!isResultsLoading ? (
-        <EuiFlexGroup justifyContent="center" style={{ marginTop: "2rem" }}>
-          <EuiFlexItem grow={0} style={{ marginTop: "1rem" }}>
-            {FACETS.map((facet) => (
-              <>
-                <Group
-                  isLoading={isResultsLoading}
-                  key={facet.title}
-                  title={facet.title}
-                  facets={facet.facets}
-                  color={facet.color}
-                  onClick={facet.onClick}
-                  selectedList={selectedAuthors}
-                />
-                <EuiSpacer style={{ width: 300 }} />
-              </>
-            ))}
-          </EuiFlexItem>
-          <EuiFlexItem grow={false}>
-            <List items={results?.docs} isLoading={isResultsLoading} />
+      {!!query ? (
+        <>
+          <EuiFlexGroup justifyContent="center" direction="column">
+            <EuiSpacer size="xs" />
+            <EuiFlexGroup justifyContent="center">
+              <EuiTitle size="xxxs">
+                <h6>Suggested keywords</h6>
+              </EuiTitle>
+            </EuiFlexGroup>
+            <EuiFlexGroup justifyContent="center">
+              {spellChecks ? (
+                flattenSpellChecks(spellChecks)
+                  .filter((spl, idx) => {
+                    if (idx < 4) return spl;
+                  })
+                  .map((kw, idx) => (
+                    <Keyword
+                      keyword={kw.collationQuery}
+                      color={idx}
+                      //@ts-ignore
+                      onClick={handleClickKeyword}
+                    />
+                  ))
+              ) : (
+                <></>
+              )}
+            </EuiFlexGroup>
+          </EuiFlexGroup>
 
-            <EuiPagination
-              style={{ maxWidth: 300 }}
-              pageCount={0}
-              activePage={activePage}
-              onPageClick={(acP) => setActivePage(acP)}
-            />
-          </EuiFlexItem>
-          <EuiFlexItem grow={false} style={{ marginTop: "1rem" }}>
-            <Suggestions />
-          </EuiFlexItem>
-        </EuiFlexGroup>
+          <EuiFlexGroup justifyContent="center" style={{ marginTop: "2rem" }}>
+            <EuiFlexItem grow={0} style={{ marginTop: "1rem" }}>
+              {FACETS.map((facet) => (
+                <>
+                  <Group
+                    isLoading={isResultsLoading}
+                    key={facet.title}
+                    title={facet.title}
+                    facets={facet.facets}
+                    color={facet.color}
+                    onClick={facet.onClick}
+                    selectedList={selectedAuthors}
+                  />
+                  <EuiSpacer style={{ width: 300 }} />
+                </>
+              ))}
+            </EuiFlexItem>
+            <EuiFlexItem grow={false}>
+              <List
+                items={results?.docs}
+                isLoading={isResultsLoading}
+                handlePreview={handlePreview}
+              />
+
+              <EuiPagination
+                style={{ maxWidth: 300 }}
+                pageCount={0}
+                activePage={activePage}
+                onPageClick={(acP) => setActivePage(acP)}
+              />
+            </EuiFlexItem>
+            <EuiFlexItem grow={false} style={{ marginTop: "1rem" }}>
+              <ResultPreview
+                ref={resultPreviewRef}
+                handleOpenMLT={handleClickKeyword}
+              />
+            </EuiFlexItem>
+          </EuiFlexGroup>
+        </>
       ) : (
         <Placeholder />
       )}

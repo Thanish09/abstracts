@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   EuiDescriptionList,
   EuiDescriptionListDescription,
@@ -9,15 +9,21 @@ import {
   EuiAvatar,
   EuiPanel,
 } from "@elastic/eui";
+import { PreviewType } from "./ResultPreview";
 
-export type Props = {
-  title: string;
-  abstract: string;
-  authors: string;
+export type Props = PreviewType & {
   score: number;
+  handlePreview: (p: PreviewType) => void;
 };
 
-const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
+const ListItem: React.FC<Props> = ({
+  id,
+  title,
+  abstract,
+  authors,
+  score,
+  handlePreview,
+}) => {
   return (
     <EuiFlexItem style={{ maxWidth: 700 }} grow={false}>
       <EuiCard
@@ -28,7 +34,7 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
           color: "accent",
           label: `Match ${score.toFixed(3)}`,
         }}
-        onClick={() => {}}
+        onClick={() => handlePreview({ id, title, abstract, authors, score })}
       >
         <EuiDescriptionList>
           <EuiDescriptionListDescription>
@@ -42,7 +48,6 @@ const ListItem: React.FC<Props> = ({ title, abstract, authors, score }) => {
                   <EuiAvatar size="m" name={author} />
                 </EuiFlexItem>
               ))}
-               
             </EuiFlexGroup>
           </EuiDescriptionListDescription>
         </EuiDescriptionList>

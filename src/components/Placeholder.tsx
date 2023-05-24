@@ -1,10 +1,13 @@
 import { EuiButton, EuiEmptyPrompt, EuiLink, EuiTitle } from "@elastic/eui";
 import React from "react";
+import Lottie from "lottie-react";
+
+import DOT from "../assets/dot.json"
 
 const Placeholder = () => {
   return (
     <EuiEmptyPrompt
-      iconType="logoSecurity"
+      icon={<Lottie style={{ height: 100 }} animationData={DOT} loop={true} />}
       body={<p>Add a new search or change your filter settings.</p>}
       footer={
         <>

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { search, spellcheck, suggestWord } from "./api";
+import { search, spellcheck, suggestWord, getMoreLikeThis } from "./api";
+
 
 export const useSearch = (
   input: string,
@@ -22,6 +23,11 @@ export const useSpellCheck = (input: string) => {
 
 export const useSuggestWords = (input: string) => {
   return useQuery(["suggest", input], () => suggestWord({ input }), { 
-    enabled: !!input,
+    enabled: !!input})
+};
+
+export const useMoreLikeThis = (documentId: string) => {
+  return useQuery(["mlt", documentId], () => getMoreLikeThis({ documentId }), {
+    enabled: !!documentId,
   });
 };

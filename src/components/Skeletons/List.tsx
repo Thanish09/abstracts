@@ -3,7 +3,7 @@ import React from "react";
 
 const List = () => {
   return (
-    <EuiFlexItem style={{ maxWidth: 700 }}>
+    <EuiFlexItem style={{ maxWidth: 700, width: 300 }}>
       <EuiCard textAlign="center" title="">
         <EuiSkeletonText
           lines={3}
