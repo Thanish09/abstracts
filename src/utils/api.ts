@@ -32,7 +32,7 @@ export const search = async ({
       facet_counts: { facet_fields },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}` +
+    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Clicense%2Cdoi%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}` +
       rq +
       "&useParams=",
     {
