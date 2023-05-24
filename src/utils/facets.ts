@@ -37,7 +37,7 @@ export const flattenSpellChecks = (
   return newSpellChecks;
 };
 
-export const injectURLParams = (authors: string[], categories?: string) => {
+export const injectURLParams = (authors: string[], categories?: string, rerank=false) => {
   //console.log("Am i running");
   let params = "";
   //console.log(typeof categories);

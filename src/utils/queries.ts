@@ -6,11 +6,12 @@ export const useSearch = (
   input: string,
   category: string,
   start: number,
-  authors: string[]
+  authors: string[],
+  rerank: boolean,
 ) => {
   return useQuery(
-    ["search", input, category, start, authors.toString()],
-    () => search({ input, category, start, authors }),
+    ["search", input, category, start, authors.toString(), {rerank}],
+    () => search({ input, category, start, authors, rerank }),
     { enabled: !!input }
   );
 };

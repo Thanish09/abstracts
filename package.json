@@ -27,6 +27,7 @@
     "react-dom": "18.2.0",
     "react-search-box": "^3.0.0",
     "redis": "^4.6.6",
+    "turnstone": "^2.2.0",
     "typescript": "5.0.4"
   },
   "devDependencies": {

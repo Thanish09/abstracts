@@ -7,6 +7,7 @@ export type SearchParams = {
   category: string;
   start: number;
   authors: string[];
+  rerank: boolean;
 };
 
 export type SearchResultType = {
@@ -19,16 +20,21 @@ export const search = async ({
   category,
   start,
   authors,
+  rerank,
 }: SearchParams) => {
   const injectableParams = injectURLParams(authors, category);
- 
+  const rq = rerank
+    ? `&rq={!ltr model=my_SCS_model efi.text_dfr='${input}' efi.text_dfi='${input}' efi.text_ib='${input}' efi.text_lmd='${input}' efi.text_lmj='${input}' efi.text='${input}'}`
+    : "";
   const {
     data: {
       response: { docs },
       facet_counts: { facet_fields },
     },
   } = await axios.get(
-    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}&useParams=`,
+    `http://localhost:8983/solr/abstracts/select?df=title&facet.field=authors&facet=true&fl=id%2Cscore%2Ctitle%2Cabstract%2Cauthors%2Cid&indent=true&q.op=OR&q=${input}${injectableParams}&start=${start}` +
+      rq +
+      "&useParams=",
     {
       method: "GET",
     }
@@ -92,5 +98,5 @@ export const suggestWord = async ({ input }: SuggestWordParams) => {
   } = await axios.get<SuggestionResponse>(
     `http://localhost:8983/solr/abstracts/suggest?suggest=true&suggest.dictionary=default&suggest.q=${input}`
   );
-  return suggest.default
+  return suggest.default;
 };
