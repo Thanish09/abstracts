@@ -5,41 +5,32 @@ import {
   EuiSpacer,
   EuiFlexGroup,
   EuiFlexItem,
-  EuiSearchBarOnChangeArgs,
-  QueryType,
-  Query,
   EuiPagination,
   EuiEmptyPrompt,
-  EuiLoadingLogo,
-  EuiCallOut,
-  EuiLink,
-  EuiButton,
   EuiSwitch,
-  EuiBetaBadge,
   EuiTitle,
   EuiBadge,
 } from "@elastic/eui";
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import Lottie from "lottie-react";
 import { euiPaletteColorBlind } from "@elastic/eui";
-import { css } from "@emotion/react";
 import Group, { FacetGroupProps } from "@/components/Facets/Group";
 import { flattenFacets, flattenSpellChecks } from "@/utils/facets";
-import { useSearch, useSpellCheck } from "@/utils/queries";
+import { useSearch, useSpellCheck, useSuggestWords } from "@/utils/queries";
 import { dropdownOptions } from "@/constants/options";
 import List from "@/components/Results/List";
-import Suggestions from "@/components/Suggestions";
 import ResultPreview, { PreviewType } from "@/components/Results/ResultPreview";
 import Placeholder from "@/components/Placeholder";
 import Keyword from "@/components/Keyword";
-import SEARCH from "../assets/search.json"
-
-const initialQuery = EuiSearchBar.Query.MATCH_ALL;
+import SEARCH from "../assets/search.json";
+import Searchbar from "@/components/Searchbar";
 
 export default function Home() {
-  const [query, setQuery] = useState<QueryType | null>(null);
+  const [query, setQuery] = useState<string>("");
+  const [suggest, setSuggest] = useState<string>("");
   const [value, setValue] = useState("");
-  const [incremental, setIncremental] = useState(false);
+  const [ranked, setRanked] = useState(false);
+
   const [activePage, setActivePage] = useState(0);
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
@@ -47,19 +38,16 @@ export default function Home() {
     data: results,
     isLoading: isResultsLoading,
     isError: isResultError,
-  } = useSearch(
-    (query as Query)?.text || (query as string) || "",
-    value,
-    activePage,
-    selectedAuthors
-  );
-  console.log(value);
+  } = useSearch(query, value, activePage, selectedAuthors, ranked);
+  //console.log(value);
   const {
     data: spellChecks,
     isLoading: isSpellChecksLoading,
     isError: isSpellChackError,
-  } = useSpellCheck((query as Query)?.text || (query as string) || "");
+  } = useSpellCheck(query);
+
   const resultPreviewRef = useRef<React.ElementRef<typeof ResultPreview>>(null);
+  const searchBarRef = useRef<React.ElementRef<typeof Searchbar>>(null);
 
   const sortedAuthors = useMemo(() => {
     const listOfAuthors = flattenFacets(results?.facet_fields?.authors || []);
@@ -117,56 +105,33 @@ export default function Home() {
     setValue(e.target.value);
   };
 
-  const onSearchChange = ({ query, error }: EuiSearchBarOnChangeArgs) => {
-    setQuery(query?.text || "");
-  };
-
-  const renderSearch = () => {
-    const schema = {
-      strict: true,
-      fields: {
-        title: {
-          type: "string",
-        },
-      },
-    };
-
-    return (
-      <EuiSearchBar
-        defaultQuery={initialQuery}
-        box={{
-          placeholder: "Search something...",
-          incremental,
-          schema,
-        }}
-        onChange={onSearchChange}
-        query={query as Query}
-      />
-    );
+  const handleSetSearch = (s: string) => {
+    searchBarRef.current?.onAddItem(s);
   };
 
   const handleClickKeyword = (key: string) => {
+    handleSetSearch(key);
     setQuery(key);
   };
 
   const handlePreview = (p: PreviewType) => {
     resultPreviewRef.current?.onPreview(p);
   };
-  console.log(!!query);
-  console.log(isResultsLoading)
+
   return (
     <>
       <EuiSpacer />
       <EuiEmptyPrompt
-        icon={<Lottie style={{ height: 50 }} animationData={SEARCH} loop={true} />}
+        icon={
+          <Lottie style={{ height: 50 }} animationData={SEARCH} loop={true} />
+        }
         title={<h2>Arxiv Search</h2>}
         body={<p>powered by Solr Search</p>}
       />
-
       <EuiSpacer />
       <EuiFlexGroup justifyContent="center">
         <EuiFlexItem grow={true} style={{ maxWidth: 700 }}>
-          {renderSearch()}
+          <Searchbar handleSearch={handleClickKeyword} ref={searchBarRef} />
         </EuiFlexItem>
         {/* <EuiSpacer /> */}
         <EuiFlexItem grow={false}>
@@ -180,8 +145,8 @@ export default function Home() {
         <EuiFlexItem grow={false} style={{ alignItems: "center" }}>
           <EuiSwitch
             label="Re-rank search"
-            checked={false}
-            onChange={(e) => onChange(e)}
+            checked={ranked}
+            onChange={(e) => setRanked((prev) => !prev)}
           />
         </EuiFlexItem>
       </EuiFlexGroup>
